@@ -1,0 +1,30 @@
+{
+  "name": "@mirawision/let-me-sync",
+  "version": "1.0.0",
+  "description": "An out-of-the-box solution to easily synchronize shared files between multiple projects",
+  "main": "index.js",
+  "bin": {
+    "lms": "./index.js"
+  },
+  "scripts": {
+    "publish": "npm publish --access public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MiraWision/let-me-sync.git"
+  },
+  "keywords": [
+    "sync",
+    "synchronize",
+    "files",
+    "projects",
+    "tool"
+  ],
+  "author": "Yelysei Lukin <yelysei277@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MiraWision/let-me-sync/issues"
+  },
+  "homepage": "https://mirawision.github.io/let-me-sync",
+  "dependencies": {}
+}
