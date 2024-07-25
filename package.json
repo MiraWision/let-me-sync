@@ -1,6 +1,6 @@
 {
   "name": "@mirawision/let-me-sync",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "An out-of-the-box solution to easily synchronize shared files between multiple projects",
   "main": "index.js",
   "bin": {
@@ -26,5 +26,7 @@
     "url": "https://github.com/MiraWision/let-me-sync/issues"
   },
   "homepage": "https://mirawision.github.io/let-me-sync",
-  "dependencies": {}
+  "dependencies": {
+    "glob": "11.0.0"
+  }
 }

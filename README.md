@@ -18,28 +18,27 @@ npm install --save-dev @mirawision/let-me-sync
 
 ## Usage
 
-### Setting Up
+### Set Up Configuration File
 
-To mark a file for synchronization, add a comment at the top of the file with the following format:
+Create a configuration file named `lms.config.json` in the root of your project to customize the behavior of the synchronization tool.
 
-```typescript
-// ORIGIN PATH: path/to/file/in/global
-```
+#### Configuration Options
+
+- `globalDir`: The global directory for synchronization.
+- `syncRules`: An array of rules defining what should be synchronized and how.
+  - `local`: The local path of the file or directory.
+  - `global`: The global path where the file or directory should be synchronized.
+- `ignore`: An array of glob patterns to exclude files or directories from synchronization.
 
 ### Synchronizing Files
+
+These scripts can be run manually or attach to certain event like deploys or 
 
 #### Sync to Global
 
 Synchronize files from your local project to the global directory:
 
 ```bash
-lms to /path/to/global
-```
-
-or, if you have set the `GLOBAL_DIR` environment variable:
-
-```bash
-export GLOBAL_DIR=/path/to/global
 lms to
 ```
 
@@ -48,50 +47,79 @@ lms to
 Synchronize files from the global directory to your local project:
 
 ```bash
-lms from /path/to/global
-```
-
-or, if you have set the `GLOBAL_DIR` environment variable:
-
-```bash
-export GLOBAL_DIR=/path/to/global
 lms from
 ```
 
-## Example
+## Usage Example
 
-### Directory Structure
+### Initial Directory Structure
 
 ```
-/my-project
-  /src
-    /components
-      Button.js
-  /global
-    /components
-      Button.js
+/global
+  /api
+    users.ts
+  /components
+    avatar.tsx
+  /assets
+    logo.png
+/web
+  lms.config.json
+  package.json
 ```
 
-### Button.js
+#### Configuration File
 
-```javascript
-// ORIGIN PATH: components/Button.js
-
-const Button = () => {
-  return <button>Click me</button>;
-};
-
-export default Button;
+```json
+{
+  "globalDir": "../global",
+  "syncRules": [
+    {
+      "global": "api",
+      "local": "src/api"
+    },
+    {
+      "global": "components",
+      "local": "src/components/common",
+    },
+    {
+      "global": "assets/logo.png",
+      "local": "assets/logo/default_logo.png"
+    }
+  ],
+  "ignore": ["node_modules/**", "dist/**"]
+}
 ```
 
 ### Running the Sync
 
-```bash
-# Sync from local project to global directory
-lms to /path/to/global
+Sync from global directory to local project
 
-# Sync from global directory to local project
-lms from /path/to/global
+```bash
+lms from
+```
+
+### Directory Structure After Sync
+
+```
+/global
+  /api
+    users.ts
+  /components
+    avatar.tsx
+  /assets
+    logo.png
+/web
+  /assets
+    /logo
+      default_logo.png
+  /src
+    /api
+      users.ts
+    /components
+      /common
+        avatar.tsx
+  lms.config.json
+  package.json
 ```
 
 ## Contributing

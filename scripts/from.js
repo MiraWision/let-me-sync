@@ -2,44 +2,60 @@
 
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
 
-const [,, globalDirArg] = process.argv;
-const localDir = process.cwd();
-const globalDir = globalDirArg || process.env.GLOBAL_DIR;
+const { loadConfig } = require('./utils/load-config');
+const { getCommonAndRelativePaths } = require('./utils/get-common-and-relative-paths');
+const { cutPath } = require('./utils/cut-path');
+const { findFiles } = require('./utils/find-files');
+const { copyFile } = require('./utils/copy-file');
 
-if (!globalDir) {
-  console.error('Usage: lms from <globalDir> or set the GLOBAL_DIR environment variable');
-  process.exit(1);
-}
+const { globalDir, syncRules, ignore } = loadConfig();
 
-const findCommand = `find ${localDir} -path "${localDir}/node_modules" -prune -o -type f -print`;
+const localDirAbs = process.cwd();
+const globalDirAbs = path.resolve(globalDir);
 
-exec(findCommand, (err, stdout, stderr) => {
-  if (err) {
-    console.error(`Error finding files: ${stderr}`);
-    return;
+const { commonPath, localShortPath, globalShortPath } = getCommonAndRelativePaths(localDirAbs, globalDirAbs);
+
+const sync = async () => {
+  console.log(`Starting synchronization from "${globalShortPath}" (global) to "${localShortPath}" (local)...`);
+
+  const syncList = [];
+
+  for (const rule of syncRules) {
+    const localPath = path.resolve(localDirAbs, rule.local);
+    const globalPath = path.resolve(globalDir, rule.global);
+  
+    if (!fs.existsSync(globalPath)) {
+      console.warn(`Warning: Source file ${cutPath(globalPath, commonPath)} does not exist. Skipping.`);
+      continue;
+    }
+
+    if (fs.statSync(globalPath).isFile()) {
+      syncList.push({ 
+        source: globalPath, 
+        destination: localPath,
+      });
+    } else {
+      const files = await findFiles(globalPath, ignore);
+
+      files.forEach((file) => {
+        syncList.push({ 
+          source: path.resolve(globalPath, file),
+          destination: path.resolve(localPath, file),
+        });
+      });
+    }
   }
 
-  stdout.split('\n').forEach((file) => {
-    if (file) {
-      const content = fs.readFileSync(file, 'utf8').split('\n');
+  console.log(`Files to be synchronized: ${syncList.length}`);
 
-      const originPathMatch = content[0].match(/ORIGIN PATH: (.*)/);
+  for (const { source, destination } of syncList) {
+    copyFile(source, destination);
 
-      if (originPathMatch) {
-        const globalPath = path.join(globalDir, originPathMatch[1]);
-      
-        if (fs.existsSync(globalPath)) {
-          fs.mkdirSync(path.dirname(file), { recursive: true });
+    console.log(`Synchronized: ${cutPath(source, commonPath)} -> ${cutPath(destination, commonPath)}.`);
+  }
 
-          fs.copyFileSync(globalPath, file);
-          
-          console.log(`Copied ${globalPath} to ${file}`);
-        } else {
-          console.error(`Global file not found: ${globalPath}`);
-        }
-      }
-    }
-  });
-});
+  console.log('Synchronization completed.');
+}
+
+sync();
